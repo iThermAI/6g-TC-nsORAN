@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: ricplt-influxdb
+  labels:
+    name: ricplt-influxdb
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteMany
+
+  storageClassName: nfs
+  hostPath:
+    type: DirectoryOrCreate
+    path: /mnt/ricplt-influxdb-data

@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: configuration-env
+  namespace: ricplt
+data:
+  INFLUXDB_DB: influx
+  INFLUXDB_ADMIN_USER: admin
+  INFLUXDB_ADMIN_PASSWORD: admin
+  GF_SECURITY_ADMIN_USER: admin
+  GF_SECURITY_ADMIN_PASSWORD: admin
+  GF_INSTALL_PLUGINS: grafana-xyzchart-panel,marcusolsson-csv-datasource
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: telegraf-config
+  namespace: ricplt
+data:
+  telegraf.conf: |
+    [agent]
+      interval = "5s"
+      round_interval = true
+      metric_buffer_limit = 10000
+      flush_buffer_when_full = true
+      collection_jitter = "0s"
+      flush_interval = "1s"
+      flush_jitter = "0s"
+      debug = false
+      quiet = false
+      hostname = ""
+
+    [[outputs.influxdb]]
+      urls = ["http://influxdb:8086"]
+      database = "influx"
+      precision = "s"
+      timeout = "5s"
+
+    [[inputs.statsd]]
+      protocol = "udp"
+      max_tcp_connections = 250
+      tcp_keep_alive = false
+      service_address = ":8125"
+      delete_gauges = true
+      delete_counters = true
+      delete_sets = true
+      delete_timings = true
+      percentiles = [90]
+      metric_separator = "_"
+      parse_data_dog_tags = false
+      allowed_pending_messages = 10000
+      percentile_limit = 1000
+
+    [[inputs.cpu]]
+      percpu = true
+      totalcpu = true
+      fielddrop = ["time_*"]
+
+    [[inputs.disk]]
+      ignore_fs = ["tmpfs", "devtmpfs"]
+
+    [[processors.starlark]]
+    source = '''
+    def apply(metric):
+      if "timestamp" in metric.tags:
+        metric.time = int(metric.tags["timestamp"])
+        return metric
+    '''

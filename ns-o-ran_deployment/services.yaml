@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: telegraf
+  namespace: ricplt
+spec:
+  selector:
+    app: telegraf
+  ports:
+    - protocol: UDP
+      port: 8125
+      targetPort: 8125
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: influxdb
+  namespace: ricplt
+spec:
+  type: NodePort
+  selector:
+    app: influxdb
+  ports:
+    - protocol: TCP
+      port: 8086
+      targetPort: 8086
+      nodePort: 32086
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: ricplt
+spec:
+  type: NodePort
+  selector:
+    app: grafana
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+      nodePort: 32000
